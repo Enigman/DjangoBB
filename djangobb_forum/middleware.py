@@ -1,16 +1,19 @@
 from datetime import timedelta
 
+import pytz
+from django.conf import settings as global_settings
 from django.core.cache import cache
 from django.utils import translation, timezone
-from django.conf import settings as global_settings
-import pytz
 
 from djangobb_forum import settings as forum_settings
+
 
 class LastLoginMiddleware(object):
     def process_request(self, request):
         if request.user.is_authenticated():
-            cache.set('djangobb_user%d' % request.user.id, True, forum_settings.USER_ONLINE_TIMEOUT)
+            cache.set('djangobb_user%d' % request.user.id, True,
+                      forum_settings.USER_ONLINE_TIMEOUT)
+
 
 class ForumMiddleware(object):
     def process_request(self, request):
@@ -26,6 +29,7 @@ class ForumMiddleware(object):
                 request.session['django_language'] = profile.language
                 translation.activate(profile.language)
                 request.LANGUAGE_CODE = translation.get_language()
+
 
 class UsersOnline(object):
     def process_request(self, request):
@@ -48,8 +52,8 @@ class UsersOnline(object):
             if guests_online[guest_id] < delta:
                 del guests_online[guest_id]
 
-        cache.set('djangobb_users_online', users_online, 60*60*24)
-        cache.set('djangobb_guests_online', guests_online, 60*60*24)
+        cache.set('djangobb_users_online', users_online, 60 * 60 * 24)
+        cache.set('djangobb_guests_online', guests_online, 60 * 60 * 24)
 
 
 class TimezoneMiddleware(object):
