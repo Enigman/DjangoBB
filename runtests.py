@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-import sys
 import os
-from os.path import dirname, abspath
+import sys
 from optparse import OptionParser
+from os.path import dirname, abspath
 
 from django.conf import settings, global_settings
 
@@ -32,11 +32,11 @@ if not settings.configured and not os.environ.get('DJANGO_SETTINGS_MODULE'):
             'djangobb_forum',
         ),
         MIDDLEWARE_CLASSES=global_settings.MIDDLEWARE_CLASSES + (
-                'django.middleware.locale.LocaleMiddleware',
-                'linaro_django_pagination.middleware.PaginationMiddleware',
-                'django.middleware.transaction.TransactionMiddleware',
-                'djangobb_forum.middleware.LastLoginMiddleware',
-                'djangobb_forum.middleware.UsersOnline',
+            'django.middleware.locale.LocaleMiddleware',
+            'linaro_django_pagination.middleware.PaginationMiddleware',
+            'django.middleware.transaction.TransactionMiddleware',
+            'djangobb_forum.middleware.LastLoginMiddleware',
+            'djangobb_forum.middleware.UsersOnline',
         ),
         TEMPLATE_CONTEXT_PROCESSORS=global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
             'djangobb_forum.context_processors.forum_settings',
@@ -45,7 +45,7 @@ if not settings.configured and not os.environ.get('DJANGO_SETTINGS_MODULE'):
         ROOT_URLCONF='djangobb_forum.tests.urls',
         DEBUG=False,
         SITE_ID=1,
-        HAYSTACK_CONNECTIONS = {
+        HAYSTACK_CONNECTIONS={
             'default': {
                 'ENGINE': 'haystack.backends.simple_backend.SimpleEngine'
             }
@@ -56,17 +56,16 @@ from django.test.simple import DjangoTestSuiteRunner
 
 
 def runtests(*test_args, **kwargs):
-    if 'south' in settings.INSTALLED_APPS:
-        from south.management.commands import patch_for_test_db_setup
-        patch_for_test_db_setup()
-
     if not test_args:
         test_args = ['djangobb_forum']
     parent = dirname(abspath(__file__))
     sys.path.insert(0, parent)
-    test_runner = DjangoTestSuiteRunner(verbosity=kwargs.get('verbosity', 1), interactive=kwargs.get('interactive', False), failfast=kwargs.get('failfast'))
+    test_runner = DjangoTestSuiteRunner(verbosity=kwargs.get('verbosity', 1),
+                                        interactive=kwargs.get('interactive', False),
+                                        failfast=kwargs.get('failfast'))
     failures = test_runner.run_tests(test_args)
     sys.exit(failures)
+
 
 if __name__ == '__main__':
     parser = OptionParser()

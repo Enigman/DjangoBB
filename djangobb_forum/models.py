@@ -8,19 +8,14 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.db import models
 from django.db.models import aggregates
+from django.db.models.signals import post_save
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from djangobb_forum import settings as forum_settings
 from djangobb_forum.fields import AutoOneToOneField, ExtendedImageField, JSONField
+from djangobb_forum.signals import post_saved, topic_saved
 from djangobb_forum.util import smiles, convert_text_to_html
-
-if 'south' in settings.INSTALLED_APPS:
-    from south.modelsinspector import add_introspection_rules
-
-    add_introspection_rules([], ['^djangobb_forum\.fields\.AutoOneToOneField',
-                                 '^djangobb_forum\.fields\.JSONField',
-                                 '^djangobb_forum\.fields\.ExtendedImageField'])
 
 TZ_CHOICES = [(tz_name, tz_name) for tz_name in pytz.common_timezones]
 
@@ -154,6 +149,9 @@ class Topic(models.Model):
         verbose_name_plural = _('Topics')
 
     def __unicode__(self):
+        return self.name
+
+    def __str__(self):
         return self.name
 
     def delete(self, *args, **kwargs):
@@ -297,7 +295,10 @@ class Reputation(models.Model):
     def __unicode__(self):
         time = timezone.localtime(self.time)
         return u'T[%d], FU[%d], TU[%d]: %s' % (
-            self.post.id, self.from_user.id, self.to_user.id, unicode(time))
+            self.post.id, self.from_user.id, self.to_user.id, pytz.unicode(time))
+
+    def __str__(self):
+        return self.__unicode__()
 
 
 class ProfileManager(models.Manager):
@@ -400,6 +401,9 @@ class Report(models.Model):
 
     def __unicode__(self):
         return u'%s %s' % (self.reported_by, self.zapped)
+
+    def __str__(self):
+        return self.__unicode__()
 
 
 class Ban(models.Model):
@@ -506,8 +510,9 @@ class PollChoice(models.Model):
     def __unicode__(self):
         return self.choice
 
+
 # ------------------------------------------------------------------------------
 
 
-# post_save.connect(post_saved, sender=Post, dispatch_uid='djangobb_post_save')
-# post_save.connect(topic_saved, sender=Topic, dispatch_uid='djangobb_topic_save')
+post_save.connect(post_saved, sender=Post, dispatch_uid='djangobb_post_save')
+post_save.connect(topic_saved, sender=Topic, dispatch_uid='djangobb_topic_save')

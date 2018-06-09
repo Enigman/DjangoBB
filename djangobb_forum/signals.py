@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.db.models.signals import post_save
 
 from djangobb_forum.subscription import notify_topic_subscribers
-from djangobb_forum.models import Topic, Post
+# from djangobb_forum.models import Topic, Post
 
 
 def post_saved(instance, **kwargs):
