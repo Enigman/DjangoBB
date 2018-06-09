@@ -3,6 +3,7 @@ Details about AutoOneToOneField:
     http://softwaremaniacs.org/blog/2007/03/07/auto-one-to-one-field/
 """
 from django.utils import six
+
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -12,17 +13,19 @@ from hashlib import sha1
 import json
 
 from django.db.models import OneToOneField
-from django.db.models.fields.related import SingleRelatedObjectDescriptor
+from django.db.models.fields.related import ReverseOneToOneDescriptor
 from django.db import models
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField
 
 
-class AutoSingleRelatedObjectDescriptor(SingleRelatedObjectDescriptor):
+class AutoSingleRelatedObjectDescriptor(ReverseOneToOneDescriptor):
     def __get__(self, instance, instance_type=None):
         try:
-            return super(AutoSingleRelatedObjectDescriptor, self).__get__(instance, instance_type)
+            return super(AutoSingleRelatedObjectDescriptor, self).__get__(instance,
+                                                                          instance_type)
         except self.related.model.DoesNotExist:
             obj = self.related.model(**{self.related.field.name: instance})
             obj.save()
@@ -36,8 +39,9 @@ class AutoOneToOneField(OneToOneField):
     """
 
     def contribute_to_related_class(self, cls, related):
-        setattr(cls, related.get_accessor_name(), AutoSingleRelatedObjectDescriptor(related))
-        #if not cls._meta.one_to_one_field:
+        setattr(cls, related.get_accessor_name(),
+                AutoSingleRelatedObjectDescriptor(related))
+        # if not cls._meta.one_to_one_field:
         #    cls._meta.one_to_one_field = self
 
 
@@ -55,7 +59,7 @@ class ExtendedImageField(models.ImageField):
         if data and self.width and self.height:
             content = self.resize_image(data.read(), width=self.width, height=self.height)
             salt = sha1(str(random.random())).hexdigest()[:5]
-            fname =  sha1(salt + settings.SECRET_KEY).hexdigest() + '.png'
+            fname = sha1(salt + settings.SECRET_KEY).hexdigest() + '.png'
             data = SimpleUploadedFile(fname, content, content_type='image/png')
         super(ExtendedImageField, self).save_form_data(instance, data)
 
@@ -77,35 +81,34 @@ class ExtendedImageField(models.ImageField):
             image = image.crop((0, y, oldw - 1, (y + oldw) - 1))
         image = image.resize((width, height), resample=Image.ANTIALIAS)
 
-
         string = StringIO()
         image.save(string, format='PNG')
         return string.getvalue()
 
 
-class JSONField(six.with_metaclass(models.SubfieldBase, models.TextField)):
-    """
-    JSONField is a generic textfield that neatly serializes/unserializes
-    JSON objects seamlessly.
-    Django snippet #1478
-    """
-
-    __metaclass__ = models.SubfieldBase
-
-    def to_python(self, value):
-        if value == "":
-            return None
-
-        try:
-            if isinstance(value, six.string_types):
-                return json.loads(value)
-        except ValueError:
-            pass
-        return value
-
-    def get_prep_value(self, value):
-        if value == "":
-            return None
-        if isinstance(value, dict):
-            value = json.dumps(value, cls=DjangoJSONEncoder)
-        return super(JSONField, self).get_prep_value(value)
+# class JSONField(six.with_metaclass(models., models.TextField)):
+#     """
+#     JSONField is a generic textfield that neatly serializes/unserializes
+#     JSON objects seamlessly.
+#     Django snippet #1478
+#     """
+#
+#     # __metaclass__ = models.SubfieldBase
+#
+#     def to_python(self, value):
+#         if value == "":
+#             return None
+#
+#         try:
+#             if isinstance(value, six.string_types):
+#                 return json.loads(value)
+#         except ValueError:
+#             pass
+#         return value
+#
+#     def get_prep_value(self, value):
+#         if value == "":
+#             return None
+#         if isinstance(value, dict):
+#             value = json.dumps(value, cls=DjangoJSONEncoder)
+#         return super(JSONField, self).get_prep_value(value)

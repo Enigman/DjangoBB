@@ -77,7 +77,7 @@ def index(request, full=True):
         return render(request, 'djangobb_forum/lofi/index.html', to_return)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def moderate(request, forum_id):
     forum = get_object_or_404(Forum, pk=forum_id)
     topics = forum.topics.order_by('-sticky', '-updated').select_related()
@@ -354,7 +354,7 @@ def show_forum(request, forum_id, full=True):
         return render(request, 'djangobb_forum/lofi/forum.html', to_return)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def show_topic(request, topic_id, full=True):
     """
     * Display a topic
@@ -466,7 +466,7 @@ def show_topic(request, topic_id, full=True):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def add_topic(request, forum_id):
     """
     create a new topic, with or without poll
@@ -522,7 +522,7 @@ def add_topic(request, forum_id):
     return render(request, 'djangobb_forum/add_topic.html', context)
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def upload_avatar(request, username, template=None, form_class=None):
     user = get_object_or_404(User, username=username)
     if request.user.is_authenticated() and user == request.user or request.user.is_superuser:
@@ -545,7 +545,7 @@ def upload_avatar(request, username, template=None, form_class=None):
                })
 
 
-@transaction.commit_on_success
+@transaction.atomic
 def user(request, username, section='essentials', action=None, template='djangobb_forum/profile/profile_essentials.html', form_class=EssentialsProfileForm):
     user = get_object_or_404(User, username=username)
     if request.user.is_authenticated() and user == request.user or request.user.is_superuser:
@@ -571,7 +571,7 @@ def user(request, username, section='essentials', action=None, template='djangob
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def reputation(request, username):
     user = get_object_or_404(User, username=username)
     form = build_form(ReputationForm, request, from_user=request.user, to_user=user)
@@ -623,7 +623,7 @@ def show_post(request, post_id):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def edit_post(request, post_id):
     from djangobb_forum.templatetags.forum_extras import forum_editable_by
 
@@ -646,7 +646,7 @@ def edit_post(request, post_id):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def delete_posts(request, topic_id):
 
     topic = Topic.objects.select_related().get(pk=topic_id)
@@ -691,7 +691,7 @@ def delete_posts(request, topic_id):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def move_topic(request):
     if 'topic_id' in request.GET:
         #if move only 1 topic
@@ -730,7 +730,7 @@ def move_topic(request):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def stick_unstick_topic(request, topic_id, action):
     topic = get_object_or_404(Topic, pk=topic_id)
     if forum_moderated_by(topic, request.user):
@@ -745,7 +745,7 @@ def stick_unstick_topic(request, topic_id, action):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def delete_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     last_post = post.topic.last_post
@@ -771,7 +771,7 @@ def delete_post(request, post_id):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def open_close_topic(request, topic_id, action):
     topic = get_object_or_404(Topic, pk=topic_id)
     if forum_moderated_by(topic, request.user):
@@ -795,7 +795,7 @@ def users(request):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def delete_subscription(request, topic_id):
     topic = get_object_or_404(Topic, pk=topic_id)
     topic.subscribers.remove(request.user)
@@ -807,7 +807,7 @@ def delete_subscription(request, topic_id):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def add_subscription(request, topic_id):
     topic = get_object_or_404(Topic, pk=topic_id)
     topic.subscribers.add(request.user)
