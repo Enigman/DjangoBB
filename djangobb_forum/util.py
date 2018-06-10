@@ -1,19 +1,17 @@
 # coding: utf-8
 
 import re
-from django.utils.six.moves import html_parser
-HTMLParser = html_parser.HTMLParser
-HTMLParseError = html_parser.HTMLParseError
-from postmarkup import render_bbcode
 from json import JSONEncoder
+
+from django.utils.html_parser import HTMLParseError, HTMLParser
+from postmarkup import render_bbcode
+
 try:
     import markdown
 except ImportError:
     pass
 
 from django.conf import settings
-from django.shortcuts import render_to_response
-from django.template import RequestContext
 from django.http import HttpResponse, Http404
 from django.utils.functional import Promise
 from django.utils.translation import check_for_language
@@ -24,8 +22,7 @@ from django.contrib.sites.models import Site
 
 from djangobb_forum import settings as forum_settings
 
-
-#compile smiles regexp
+# compile smiles regexp
 _SMILES = [(re.compile(smile_re), path) for smile_re, path in forum_settings.SMILES]
 
 
@@ -51,14 +48,14 @@ def paged(paged_list_name, per_page):
 
             real_per_page = per_page
 
-            #if per_page_var:
-                #try:
-                    #value = int(request.GET[per_page_var])
-                #except (ValueError, KeyError):
-                    #pass
-                #else:
-                    #if value > 0:
-                        #real_per_page = value
+            # if per_page_var:
+            # try:
+            # value = int(request.GET[per_page_var])
+            # except (ValueError, KeyError):
+            # pass
+            # else:
+            # if value > 0:
+            # real_per_page = value
 
             from django.core.paginator import Paginator
             paginator = Paginator(result['paged_qs'], real_per_page)
@@ -75,6 +72,7 @@ def paged(paged_list_name, per_page):
             result['results_per_page'] = paginator.per_page,
             result['request'] = request
             return result
+
         return wrapper
 
     return decorator
@@ -118,53 +116,53 @@ def build_form(Form, _request, GET=False, *args, **kwargs):
 
 
 class ExcludeTagsHTMLParser(HTMLParser):
-        """
-        Class for html parsing with excluding specified tags.
-        """
+    """
+    Class for html parsing with excluding specified tags.
+    """
 
-        def __init__(self, func, tags=('a', 'pre', 'span')):
-            HTMLParser.__init__(self)
-            self.func = func
-            self.is_ignored = False
-            self.tags = tags
-            self.html = []
+    def __init__(self, func, tags=('a', 'pre', 'span')):
+        HTMLParser.__init__(self)
+        self.func = func
+        self.is_ignored = False
+        self.tags = tags
+        self.html = []
 
-        def handle_starttag(self, tag, attrs):
-            self.html.append('<%s%s>' % (tag, self.__html_attrs(attrs)))
-            if tag in self.tags:
-                self.is_ignored = True
+    def handle_starttag(self, tag, attrs):
+        self.html.append('<%s%s>' % (tag, self.__html_attrs(attrs)))
+        if tag in self.tags:
+            self.is_ignored = True
 
-        def handle_data(self, data):
-            if not self.is_ignored:
-                data = self.func(data)
-            self.html.append(data)
+    def handle_data(self, data):
+        if not self.is_ignored:
+            data = self.func(data)
+        self.html.append(data)
 
-        def handle_startendtag(self, tag, attrs):
-            self.html.append('<%s%s/>' % (tag, self.__html_attrs(attrs)))
+    def handle_startendtag(self, tag, attrs):
+        self.html.append('<%s%s/>' % (tag, self.__html_attrs(attrs)))
 
-        def handle_endtag(self, tag):
-            self.is_ignored = False
-            self.html.append('</%s>' % (tag))
+    def handle_endtag(self, tag):
+        self.is_ignored = False
+        self.html.append('</%s>' % (tag))
 
-        def handle_entityref(self, name):
-            self.html.append('&%s;' % name)
+    def handle_entityref(self, name):
+        self.html.append('&%s;' % name)
 
-        def handle_charref(self, name):
-            self.html.append('&#%s;' % name)
+    def handle_charref(self, name):
+        self.html.append('&#%s;' % name)
 
-        def unescape(self, s):
-            #we don't need unescape data (without this possible XSS-attack)
-            return s
+    def unescape(self, s):
+        # we don't need unescape data (without this possible XSS-attack)
+        return s
 
-        def __html_attrs(self, attrs):
-            _attrs = ''
-            if attrs:
-                _attrs = ' %s' % (' '.join([('%s="%s"' % (k, v)) for k, v in attrs]))
-            return _attrs
+    def __html_attrs(self, attrs):
+        _attrs = ''
+        if attrs:
+            _attrs = ' %s' % (' '.join([('%s="%s"' % (k, v)) for k, v in attrs]))
+        return _attrs
 
-        def feed(self, data):
-            HTMLParser.feed(self, data)
-            self.html = ''.join(self.html)
+    def feed(self, data):
+        HTMLParser.feed(self, data)
+        self.html = ''.join(self.html)
 
 
 def urlize(html):
@@ -186,10 +184,12 @@ def urlize(html):
         return html
     return urlized_html
 
+
 def _smile_replacer(data):
     for smile, path in _SMILES:
         data = smile.sub(path, data)
     return data
+
 
 def smiles(html):
     """
@@ -208,6 +208,7 @@ def smiles(html):
         return html
     return smiled_html
 
+
 def paginate(items, request, per_page, total_count=None):
     try:
         page_number = int(request.GET.get('page', 1))
@@ -221,6 +222,7 @@ def paginate(items, request, per_page, total_count=None):
     except (InvalidPage, EmptyPage):
         raise Http404
     return pages, paginator, paged_list_name
+
 
 def set_language(request, language):
     """
@@ -239,4 +241,3 @@ def convert_text_to_html(text, markup):
     else:
         raise Exception('Invalid markup property: %s' % markup)
     return urlize(text)
-
