@@ -77,10 +77,10 @@ class UserAdmin(auth_admin.UserAdmin):
     def get_urls(self):
         from django.conf.urls import url
         return [
-                url(r'^(\d+)/password/$',
-                    self.admin_site.admin_view(self.user_change_password),
-                    name='user_change_password'),
-                ] + super(auth_admin.UserAdmin, self).get_urls()
+                   url(r'^(\d+)/password/$',
+                       self.admin_site.admin_view(self.user_change_password),
+                       name='user_change_password'),
+               ] + super(auth_admin.UserAdmin, self).get_urls()
 
 
 class AttachmentAdmin(BaseModelAdmin):
