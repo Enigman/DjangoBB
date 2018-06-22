@@ -2,7 +2,7 @@
 import hashlib
 
 from django import template
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from django.utils.encoding import smart_text

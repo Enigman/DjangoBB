@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.sites.models import Site
 from django.core.cache import cache
 from django.core.exceptions import SuspiciousOperation, PermissionDenied
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import transaction
 from django.db.models import Q, F
 from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponseForbidden

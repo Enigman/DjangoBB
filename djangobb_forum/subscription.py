@@ -1,6 +1,6 @@
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.html import strip_tags
 
 from djangobb_forum import settings as forum_settings
